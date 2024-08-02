@@ -1,125 +1,245 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const MainApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MainApp extends StatelessWidget {
+  const MainApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      title: 'My First App',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const StarPage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+class StarPage extends StatelessWidget {
+  const StarPage([Key? key]) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    return Scaffold(
+        body: Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            'スライドパズル',
+            style: TextStyle(fontSize: 32),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            key: Key('start'),
+            onPressed: () => showPuzzlePage(context),
+            child: const Text('スタート'),
+          )
+        ],
+      ),
+    ));
+  }
+}
+
+void showPuzzlePage(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => PuzzlePage()),
+  );
+}
+
+class PuzzlePage extends StatefulWidget {
+  const PuzzlePage({Key? key}) : super(key: key);
+
+  @override
+  _PuzzlePageState createState() => _PuzzlePageState();
+}
+
+class _PuzzlePageState extends State<PuzzlePage> {
+  List<int> tileNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+  String debugString = '静的解析エラーになる？';
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text('スライドパズル'),
+        actions: [
+          IconButton(
+            onPressed: () => loadTileNumbers(),
+            icon: const Icon(Icons.play_arrow),
+          ),
+          IconButton(
+            onPressed: () => saveTileNumbers(),
+            icon: const Icon(Icons.save),
+          )
+        ],
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+          children: [
+            Expanded(
+              child: Center(
+                child: TilesView(
+                  numbers: tileNumbers,
+                  isCurrent: calcIsCurrent(tileNumbers),
+                  onPressed: (number) => swapTile(number),
+                ),
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            SizedBox(
+                width: double.infinity,
+                // シャッフルボタン
+                child: ElevatedButton.icon(
+                  onPressed: () => shuffleTiles(),
+                  icon: const Icon(Icons.shuffle),
+                  label: const Text('シャッフル'),
+                )),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+
+  bool calcIsCurrent(List<int> numbers) {
+    final currentNumbers = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+
+    for (int i = 0; i < currentNumbers.length; i++) {
+      if (currentNumbers[i] != numbers[i]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  void swapTile(int number) {
+    if (canSwapTile(number)) {
+      setState(() {
+        final indexOfTile = tileNumbers.indexOf(number);
+        final indexOfEmpty = tileNumbers.indexOf(0);
+        tileNumbers[indexOfTile] = 0;
+        tileNumbers[indexOfEmpty] = number;
+      });
+    }
+  }
+
+  bool canSwapTile(int number) {
+    final indexOfTile = tileNumbers.indexOf(number);
+    final indexOfEmpty = tileNumbers.indexOf(0);
+
+    switch (indexOfEmpty) {
+      case 0:
+        return [1, 3].contains(indexOfTile);
+      case 1:
+        return [0, 2, 4].contains(indexOfTile);
+      case 2:
+        return [1, 3, 5].contains(indexOfTile);
+      case 3:
+        return [0, 4, 6].contains(indexOfTile);
+      case 4:
+        return [1, 3, 5, 7].contains(indexOfTile);
+      case 5:
+        return [2, 4, 8].contains(indexOfTile);
+      case 6:
+        return [3, 7].contains(indexOfTile);
+      case 7:
+        return [4, 6, 8].contains(indexOfTile);
+      case 8:
+        return [5, 7].contains(indexOfTile);
+      default:
+        return false;
+    }
+  }
+
+  void shuffleTiles() {
+    setState(() {
+      tileNumbers.shuffle();
+    });
+  }
+
+  void saveTileNumbers() async {
+    final value = jsonEncode(tileNumbers);
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString('TILE_NUMBERS', value);
+  }
+
+  void loadTileNumbers() async {
+    final preferences = await SharedPreferences.getInstance();
+    final value = preferences.getString('TILE_NUMBERS');
+    if (value != null) {
+      final numbers =
+          (jsonDecode(value) as List<dynamic>).map((v) => v as int).toList();
+      setState(() {
+        tileNumbers = numbers;
+      });
+    }
+  }
+}
+
+class TilesView extends StatelessWidget {
+  final List<int> numbers;
+  final bool isCurrent;
+  final void Function(int number) onPressed;
+
+  const TilesView({
+    Key? key,
+    required this.numbers,
+    required this.isCurrent,
+    required this.onPressed,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.count(
+      shrinkWrap: true,
+      crossAxisCount: 3,
+      crossAxisSpacing: 24,
+      mainAxisSpacing: 24,
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      children: numbers.map((number) {
+        if (number == 0) {
+          return Container();
+        }
+        return TileView(
+          number: number,
+          color: isCurrent ? Colors.green : Colors.blue,
+          onPressed: () => onPressed(number),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class TileView extends StatelessWidget {
+  final int number;
+  final Color color;
+  final void Function() onPressed;
+
+  const TileView({
+    Key? key,
+    required this.number,
+    required this.color,
+    required this.onPressed,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        textStyle: const TextStyle(fontSize: 32),
+      ),
+      child: Center(
+        child: Text(number.toString()),
+      ),
     );
   }
 }
