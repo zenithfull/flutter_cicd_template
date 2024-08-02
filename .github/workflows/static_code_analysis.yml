@@ -1,0 +1,38 @@
+name: Static code analysis
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Setup Java environment in order to build the Android app.
+      - uses: actions/checkout@v1
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '12.x'
+
+      # Setup the flutter environment.
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: 'stable' # 'dev', 'alpha', default to: 'stable'
+          flutter-version: '3.22.2'
+
+      # Get flutter dependencies.
+      - run: flutter pub get
+
+      # Testing
+      - name: Check formatting
+
+        # Check for any formatting issues in the code.
+        run: dart format --set-exit-if-changed .
+
+      - name: Install flutter_analyze_reporter
+
+        # Activate locally
+        run: flutter pub global activate -s path .
+
+      # Lint checks
+      - name: Analyze Dart
+
+        run: flutter_analyze_reporter
