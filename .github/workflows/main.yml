@@ -7,6 +7,10 @@ env:
 
 jobs:
   build:
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
     runs-on: ubuntu-latest
     steps:
       # Setup Java environment in order to build the Android app.
