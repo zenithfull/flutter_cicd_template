@@ -1,0 +1,51 @@
+name: main
+
+on: [push]
+
+env:
+  FLUTTER_VERSION: '3.22.2'
+
+jobs:
+  build:
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
+    runs-on: ubuntu-latest
+    steps:
+      # Setup Java environment in order to build the Android app.
+      - uses: actions/checkout@v3
+      # Setup the flutter environment.
+      - uses: subosito/flutter-action@v2.3.0
+        with:
+          channel: 'stable' # 'dev', 'alpha', default to: 'stable'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+
+      # Get flutter dependencies.
+      - run: |
+          flutter pub get
+
+      # Check format
+      - name: Check formatting
+        # Check for any formatting issues in the code.
+        run: |
+          dart format --set-exit-if-changed .
+
+      # Lint checks
+      - name: Analyze Dart
+        uses: zgosalvez/github-actions-analyze-dart@v1
+
+      # Testing
+      - name: Test
+        run: |
+          flutter test --machine > test_report.log
+
+      # Upload Report File
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: 'flutter test'
+          path: 'test_report.log'
+          reporter: 'flutter-json'
+          fail-on-error: 'false'
