@@ -1,6 +1,9 @@
-name: Static code analysis
+name: main
 
 on: [push]
+
+env:
+  FLUTTER_VERSION: '3.22.2'
 
 jobs:
   build:
@@ -16,21 +19,36 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           channel: 'stable' # 'dev', 'alpha', default to: 'stable'
-          flutter-version: '3.22.2'
+          flutter-version: ${{ env.FLUTTER_VERSION }}
 
       # Get flutter dependencies.
-      - run: flutter pub get
+      - run: |
+          flutter pub get
 
-      # Testing
+      # Check format
       - name: Check formatting
-
         # Check for any formatting issues in the code.
-        run: dart format --set-exit-if-changed .
+        run: |
+          dart format --set-exit-if-changed .
 
       # Lint checks
       - name: Analyze Dart
-
         run: |
           dart pub global activate flutter_analyze_reporter
           flutter_analyze_reporter --reporter github
         shell: bash
+
+      # Testing
+      - name: Test
+        run: |
+          flutter test --machine > test_report.log
+
+      # Upload Report File
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: 'flutter test'
+          path: 'test_report.log'
+          reporter: 'flutter-json'
+          fail-on-error: 'false'
