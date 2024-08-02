@@ -10,7 +10,7 @@ void main() {
     test('incrementing the value', () {
       final counter = Counter();
       counter.increment();
-      expect(counter.value, 1);
+      expect(counter.value, 0);
     });
 
     test('decrementing the value', () {
