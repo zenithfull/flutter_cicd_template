@@ -31,7 +31,7 @@ jobs:
       - run: flutter build ios --simulator
 
       # Upload generated apk to the artifacts.
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v4
         id: artifact-upload-step
         with:
           name: iphonesimulator-app
