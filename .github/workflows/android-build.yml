@@ -31,6 +31,28 @@ jobs:
 
       # Upload generated apk to the artifacts.
       - uses: actions/upload-artifact@v1
+        id: artifact-upload-step
         with:
           name: release-apk
           path: build/app/outputs/apk/release/app-release.apk
+
+      - name: Send to slack
+        if: success()
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": "Github Actions実行結果: ${{ job.status }}\nAndroid APKダウンロードリンク: ${{github.server_url}}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.artifact-upload-step.outputs.artifact-id }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Github Actions実行結果: ${{ job.status }}\nAndroid APKダウンロードリンク: ${{github.server_url}}/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.artifact-upload-step.outputs.artifact-id }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
