@@ -25,5 +25,5 @@ jobs:
       # Upload generated apk to the artifacts.
       - uses: actions/upload-artifact@v1
         with:
-          name: release-apk
+          name: iphonesimulator-app
           path: build/ios/iphonesimulator/Runner.app
