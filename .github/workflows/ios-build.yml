@@ -1,12 +1,8 @@
 name: ios build
 
 on:
-  push:
-    branches:
-      - main
-
-env:
-  FLUTTER_VERSION: '3.22.2'
+  workflow_call:
+    secrets: FLUTTER_VERSION
 
 jobs:
   build:
@@ -18,7 +14,7 @@ jobs:
       - uses: subosito/flutter-action@v2.3.0
         with:
           channel: 'stable' # 'dev', 'alpha', default to: 'stable'
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version: ${{ secrets.FLUTTER_VERSION }}
 
       # Get flutter dependencies.
       - run: |

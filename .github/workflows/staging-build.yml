@@ -1,0 +1,21 @@
+name: staging build
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  FLUTTER_VERSION: '3.22.2'
+
+jobs:
+  android-build:
+    uses: ./.github/workflows/android-build.yml
+    secrets:
+      FLUTTER_VERSION: ${{ env.FLUTTER_VERSION }}
+
+  ios-build:
+    needs: android-build
+    uses: ./.github/workflows/ios-build.yml
+    secrets:
+      FLUTTER_VERSION: ${{ env.FLUTTER_VERSION }}
