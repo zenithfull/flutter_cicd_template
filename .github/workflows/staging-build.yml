@@ -8,7 +8,13 @@ on:
 jobs:
   android-build:
     uses: ./.github/workflows/android-build.yml
+    with:
+      env: staging
+    secrets: inherit
 
   ios-build:
     needs: android-build
     uses: ./.github/workflows/ios-build.yml
+    with:
+      env: staging
+    secrets: inherit
