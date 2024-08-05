@@ -2,11 +2,19 @@ name: ios build
 
 on:
   workflow_call:
+    inputs:
+      env:
+        required: true
+        type: string
+    secrets:
+      SLACK_INCOMING_WEBHOOK_URL:
+        required: true
 
 jobs:
   build:
     # This job will run on ubuntu virtual machine
     runs-on: macos-latest
+    environment: ${{ inputs.env }}
     steps:
       - uses: actions/checkout@v3
 
