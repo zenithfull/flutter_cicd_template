@@ -1,4 +1,4 @@
-name: main
+name: analyze and unit test
 
 on:
   push:
