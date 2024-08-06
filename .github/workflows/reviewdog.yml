@@ -1,0 +1,29 @@
+name: reviewdog
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      # Setup Java environment in order to build the Android app.
+      - uses: actions/checkout@v4
+      # Setup the flutter environment.
+      - uses: subosito/flutter-action@v2.3.0
+        with:
+          channel: 'stable' # 'dev', 'alpha', default to: 'stable'
+          flutter-version: ${{ vars.FLUTTER_VERSION }}
+
+      # Get flutter dependencies.
+      - run: |
+          flutter pub get
+
+      - name: Setup reviewdog
+        uses: reviewdog/action-setup@v1.0.3
+
+      - name: Run reviewdog
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.REVIEWDOG_TOKEN }}
+        run: reviewdog -conf=./.reviewdog.yml -reporter=github-pr-review -filter-mode=file
